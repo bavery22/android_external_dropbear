@@ -1,0 +1,34 @@
+#/system/bin/sh
+
+if [ "$2" == "" ]; then
+	echo "please enter in SSID PW"
+	exit 
+fi
+echo "starting wifi service"
+/system/bin/start wifiservice
+/system/bin/start powermanager
+/system/bin/start hciattach
+sleep 2
+/system/xbin/hciconfig hci0 up
+echo "turning on the wifi driver"
+wifitest driver on
+sleep 1
+wifitest add $1,$2
+wifitest enable $1 
+wifitest reconnect
+echo "waiting for dhcp"
+sleep 5
+/system/bin/ifconfig
+
+if [ ! -e /bin ]; then 
+	mount -o rw,remount / /
+	ln -s /system/bin /bin
+fi;
+if [ "`ps | egrep dropbear| egrep -v grep | head -1`" != "" ]; then
+	echo "Dropbear already running"
+else
+	echo "Starting dropbear"
+	/system/xbin/dropbear
+fi
+	
+
